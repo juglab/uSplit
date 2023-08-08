@@ -10,7 +10,7 @@ cd uSplit
 ./install_deps.sh
 pip install -e .
 ```
-One also needs to create an account on [wandb](https://docs.wandb.ai/quickstart). This is used for logging training and evaluation metrics. In case you do not want to use wandb, you can replace the logger [here](usplit/training.py#L406) with a logger of your choice and comment out [here](usplit/training.py#L349).
+In case, one wants to do training, then one also needs to create an account on [wandb](https://docs.wandb.ai/quickstart). This is used for logging training and evaluation metrics. In case you do not want to use wandb, you can replace the logger [here](usplit/training.py#L406) with a logger of your choice and comment out [here](usplit/training.py#L349).
 
 ## Data
 For Hagen et al. dataset, please download the data from [here](http://gigadb.org/dataset/100888). You need to download the following files:
@@ -30,4 +30,4 @@ python /home/ubuntu/code/uSplit/uSplit/scripts/run.py --workdir=/home/ubuntu/tra
 ```
 
 ## Evaluation
-For evaluation, we have provided pre-trained models and the notebook [here](notebooks/evaluation.ipynb). Please download the pre-trained models from [here](https://drive.google.com/drive/folders/1Z3Z3Q2Z3Z3Q2Z3Q2Z3Q2Z3Q2Z3Q2Z3Q2?usp=sharing).
+For evaluation, we have provided pre-trained models and the notebook [here](examples/Evaluate.ipynb). Please download the pre-trained models from [here](https://drive.google.com/drive/folders/1Z3Z3Q2Z3Z3Q2Z3Q2Z3Q2Z3Q2Z3Q2Z3Q2?usp=sharing).
