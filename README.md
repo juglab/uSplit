@@ -18,7 +18,7 @@ For Hagen et al. dataset, please download the data from [here](http://gigadb.org
 1. actin-60x-noise2-highsnr.tif
 2. mito-60x-noise2-highsnr.tif
 ```
-For our PaviaATN dataset, please download the data from [here](https://zenodo.org/record/1203745#.YKZ2ZegzZPY). 
+For our PaviaATN dataset, please download the data from [here](https://zenodo.org/record/8235843). 
 For our Synthetic dataset SinosoidalCritters, please download the data from [here](https://zenodo.org/record/1203745#.YKZ2ZegzZPY).
 
 For each dataset, create a separate directory and put the files in the directory. The directory should not contain any other files.
