@@ -23,7 +23,7 @@ For our Synthetic dataset SinosoidalCritters, please download the data from [her
 
 For each dataset, create a separate directory and put the files in the directory. The directory should not contain any other files.
 
-## Usage
+## Network training
 To train a Regular-LC model on the Hagen dataset, run this command:
 ```bash
 python /home/ubuntu/code/uSplit/uSplit/scripts/run.py --workdir=/home/ubuntu/training/uSplit/ -mode=train --datadir=/home/ubuntu/data/ventura_gigascience/ --config=/home/ubuntu/code/uSplit/usplit/configs/lc_hagen_config.py
