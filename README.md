@@ -23,11 +23,25 @@ For our Synthetic dataset SinosoidalCritters, please download the data from [her
 
 For each dataset, create a separate directory and put the files in the directory. The directory should not contain any other files.
 
-## Usage
-To train a Regular-LC model on the Hagen dataset, run this command:
+## Training
+To train one of our LC variants on the Hagen dataset, run this command:
 ```bash
 python /home/ubuntu/code/uSplit/uSplit/scripts/run.py --workdir=/home/ubuntu/training/uSplit/ -mode=train --datadir=/home/ubuntu/data/ventura_gigascience/ --config=/home/ubuntu/code/uSplit/usplit/configs/lc_hagen_config.py
 ```
+
+For Lean-LC, in `lc_hagen_config.py`
+1. Set `model.decoder.multiscale_retain_spatial_dims=False`. 
+2. Set `model.z_dims = [128, 128, 128, 128]`.
+
+For Regular-LC, in `lc_hagen_config.py`
+1. Set `model.decoder.multiscale_retain_spatial_dims=True`.
+2. Set `model.z_dims = [128, 128, 128, 128]`.
+
+For Deep-LC,  in `lc_hagen_config.py`
+1. Set `model.decoder.multiscale_retain_spatial_dims=True`.
+2. Set `model.z_dims = [128, 128, 128, 128, 128, 128, 128, 128]`. 
+
+We have also provided the configs for training on our PaviaATN dataset and SinosoidalCritters dataset. Above mentioned config settings needs to be changed accordingly.
 
 ## Evaluation
 For evaluation, we have provided pre-trained models and the notebook [here](examples/Evaluate.ipynb). Please download the pre-trained models from [here](https://drive.google.com/drive/folders/1Z3Z3Q2Z3Z3Q2Z3Q2Z3Q2Z3Q2Z3Q2Z3Q2?usp=sharing).
