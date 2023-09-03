@@ -466,8 +466,7 @@ def main(
 
 def save_hardcoded_ckpt_evaluations_to_file(normalized_ssim=True):
     ckpt_dirs = [
-        '/home/ashesh.ashesh/training/disentangle/2303/D7-M10-S0-L3/0',
-        '/home/ashesh.ashesh/training/disentangle/2301/D3-M10-S0-L3/43',
+        '/home/ashesh.ashesh/training/disentangle/2210/D7-M3-S0-L0/79',
     ]
     if ckpt_dirs[0].startswith('/home/ashesh.ashesh'):
         OUTPUT_DIR = os.path.expanduser('/group/jug/ashesh/data/paper_stats/')
@@ -524,18 +523,17 @@ if __name__ == '__main__':
     parser.add_argument('--patch_size', type=int, default=64)
     parser.add_argument('--grid_size', type=int, default=16)
     parser.add_argument('--hardcoded', action='store_true')
-    parser.add_argument('--normalized_ssim', action='store_true')
+    parser.add_argument('--unnormalized_ssim', action='store_true')
 
     args = parser.parse_args()
     if args.hardcoded:
         print('Ignoring ckpt_dir,patch_size and grid_size')
-        save_hardcoded_ckpt_evaluations_to_file(normalized_ssim=args.normalized_ssim)
+        save_hardcoded_ckpt_evaluations_to_file(normalized_ssim=not args.unnormalized_ssim)
     else:
         mmse_count = 1
         ignored_last_pixels = 32 if os.path.basename(os.path.dirname(args.ckpt_dir)).split('-')[0][1:] == '3' else 0
         OUTPUT_DIR = ''
         eval_datasplit_type = DataSplitType.Test
-
         data = main(
             args.ckpt_dir,
             DEBUG,
