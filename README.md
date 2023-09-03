@@ -7,6 +7,8 @@ This is the official implementation of [μSplit: image decomposition for fluores
 ```bash
 git clone https://github.com/juglab/uSplit.git
 cd uSplit
+conda create -n usplit python=3.9
+conda activate usplit
 ./install_deps.sh
 pip install -e .
 ```

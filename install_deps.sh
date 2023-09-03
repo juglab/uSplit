@@ -1,5 +1,3 @@
-conda create -n usplit python=3.9
-conda activate usplit
 conda install pytorch==1.13.1 torchvision==0.14.1 pytorch-cuda=11.6 -c pytorch -c nvidia -y
 conda install -c conda-forge pytorch-lightning -y
 conda install -c conda-forge wandb -y
