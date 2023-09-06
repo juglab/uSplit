@@ -18,3 +18,4 @@ class DataType(Enum):
     ShroffMitoEr = 13
     HTIba1Ki67 = 14
     BSD68 = 15
+    SingleZarrData = 16

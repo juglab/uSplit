@@ -66,7 +66,9 @@ class MultiScaleTiffDloader(MultiChDeterministicTiffDloader):
         self._lowres_supervision = lowres_supervision
         assert isinstance(self._padding_kwargs, dict)
         assert 'mode' in self._padding_kwargs
+        self.load_scaled_data()
 
+    def load_scaled_data(self):
         for _ in range(1, self.num_scales):
             shape = self._scaled_data[-1].shape
             assert len(shape) == 4

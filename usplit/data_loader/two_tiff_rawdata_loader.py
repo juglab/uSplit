@@ -18,8 +18,6 @@ def get_train_val_data(dirname, data_config, datasplit_type, val_fraction, test_
     data2 = load_tiff(fpath2)[..., None]
 
     data = np.concatenate([data1, data2], axis=3)
-    if data_config.get('enable_poisson_noise', True):
-        data = np.random.poisson(data)
 
     if datasplit_type == DataSplitType.All:
         return data.astype(np.float32)

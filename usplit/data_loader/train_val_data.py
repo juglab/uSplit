@@ -3,6 +3,7 @@ Here, the idea is to load the data from different data dtypes into a single inte
 """
 from typing import Union
 
+import zarr
 from usplit.core.data_split_type import DataSplitType
 from usplit.core.data_type import DataType
 from usplit.data_loader.multi_channel_train_val_data import train_val_data as _load_tiff_train_val
@@ -45,8 +46,9 @@ def get_train_val_data(data_config,
                                    test_fraction=test_fraction,
                                    allow_generation=allow_generation)
 
+    elif data_config.data_type == DataType.SingleZarrData:
+        return zarr.load(fpath)
     elif data_config.data_type == DataType.SeparateTiffData:
         return _loadseparatetiff(fpath, data_config, datasplit_type, val_fraction, test_fraction)
-
     else:
         raise NotImplementedError(f'{DataType.name(data_config.data_type)} is not implemented')

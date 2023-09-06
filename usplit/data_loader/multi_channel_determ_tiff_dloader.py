@@ -449,7 +449,7 @@ class MultiChDeterministicTiffDloader:
         return tuple(final_img_tuples)
 
     def _compute_input_with_alpha(self, img_tuples, alpha):
-        assert len(img_tuples) == 2
+        assert len(img_tuples) == 2, f'Expected {len(img_tuples)} to be 2'
         assert self._normalized_input is True, "normalization should happen here"
 
         inp = img_tuples[0] * alpha + img_tuples[1] * (1 - alpha)
