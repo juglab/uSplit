@@ -77,7 +77,8 @@ def generate(zarr_path: str,
 
                 if scale_idx > 0:
                     # there is no downscaling for 1st.
-                    downscaled_frame = resize(downscaled_frame, train_output_zarrs[scale_idx]['raw'].shape[1:3])
+                    downscaled_frame = resize(downscaled_frame, train_output_zarrs[scale_idx]['raw'].shape[1:3], 
+                                              preserve_range=True, anti_aliasing=True)
 
                 if n_idx in trainidx:
                     train_output_zarrs[scale_idx]['raw'][train_n_idx, ..., ch_idx] = downscaled_frame
