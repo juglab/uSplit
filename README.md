@@ -48,4 +48,4 @@ To train the Vanilla baseline, set `data.multiscale_lowres_count = None`. To tra
 We have also provided the configs for training on our PaviaATN dataset and SinosoidalCritters dataset. Above mentioned hyperparameter settings needs to be changed accordingly.
 
 ## Evaluation
-For evaluation, we have provided pre-trained models and the notebook [here](examples/Evaluate.ipynb). Please download the pre-trained models from [here](https://drive.google.com/drive/folders/1Z3Z3Q2Z3Z3Q2Z3Q2Z3Q2Z3Q2Z3Q2Z3Q2?usp=sharing).
+For evaluation, we have provided the notebook [here](examples/Evaluate.ipynb) and the pre-trained models [here](https://zenodo.org/record/8324707).
