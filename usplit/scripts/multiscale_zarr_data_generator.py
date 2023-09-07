@@ -65,8 +65,6 @@ def generate(zarr_path: str,
     quantile_dict = {ch_idx: [] for ch_idx in range(data.shape[-1])}
 
     for n_idx in tqdm(range(data.shape[0])):
-        if n_idx >20:
-            break
         for ch_idx in tqdm(range(data.shape[-1])):
             frame = data[n_idx, ..., ch_idx]
             downscaled_frame = frame
@@ -99,7 +97,7 @@ def generate(zarr_path: str,
 
     train_output_zarrs[0]['mean'] = [(k, np.mean(mean_dict[k])) for k in sorted(mean_dict.keys())]
     train_output_zarrs[0]['std'] = [(k, np.mean(std_dict[k])) for k in sorted(std_dict.keys())]
-    train_output_zarrs[0]['quantile'] = [(quantile,k, np.mean(quantile_dict[k])) for k in sorted(quantile_dict.keys())]
+    train_output_zarrs[0]['quantile'] = [(k,quantile, np.mean(quantile_dict[k])) for k in sorted(quantile_dict.keys())]
 
     return train_output_zarrs, val_output_zarrs, test_output_zarrs
 

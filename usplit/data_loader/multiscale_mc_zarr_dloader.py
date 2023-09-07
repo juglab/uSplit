@@ -33,7 +33,6 @@ class MultiScaleZarrDloader(MultiScaleTiffDloader):
         assert data_config.get("empty_patch_replacement_enabled",
                                False) is False, msg.format('empty_patch_replacement_enabled')
         assert data_config.get('background_quantile', 0.0) == 0.0, msg.format('background_quantile')
-        self._config_max_val = data_config.get('max_val', None)
         self._datasplit_type = datasplit_type
         self._fpath = fpath
         self._channels = [data_config.channel_1, data_config.channel_2]
@@ -69,6 +68,14 @@ class MultiScaleZarrDloader(MultiScaleTiffDloader):
         assert isinstance(self._padding_kwargs, dict)
         assert 'mode' in self._padding_kwargs
 
+    def get_channelordered_metadata(self, zarr_metadata):
+        idx = [ ]
+        for ch in self._channels:
+            matching_rows = np.where(zarr_metadata[:,0] ==ch)[0]
+            assert len(matching_rows) == 1
+            idx.append(matching_rows[0])
+        return zarr_metadata[idx]
+    
     def load_data(self, data_config, datasplit_type, val_fraction=None, test_fraction=None, allow_generation=None):
         for scale_idx in tqdm(range(0, self.num_scales)):
             basedir = self._fpath
@@ -77,12 +84,60 @@ class MultiScaleZarrDloader(MultiScaleTiffDloader):
                 raise FileNotFoundError(f'{tiff_fpath} does not exist. Exiting!')
             self._scaled_data.append(zarr.load(tiff_fpath))
 
-        self._data = self._scaled_data[0]
+        self._data = self._scaled_data[0]['raw']
         self.N = len(self._data)
+    
+    def compute_max_val(self):
+        quantile_data = self.get_channelordered_metadata(self._scaled_data[0]['quantile'][:])
+        msg = 'Quantile mismatch. Data has {} but this run expects {}.'
+        msg += ' Run the multiscale_zarr_data_generator.py again with the correct quantile value or update the quantile value in the config for this run'
+        assert np.all(quantile_data[:,1] == self._quantile), msg
+        quantile = quantile_data[:,2]
 
-    def set_max_val(self, max_val, datasplit_type):
-        assert max_val is not None or self._config_max_val is not None, 'max_val should be precomputed and saved to config to avoid computation on of whole data'
-        self.max_val = max_val if max_val is not None else self._config_max_val
+        if self._channelwise_quantile:
+            max_val_arr = quantile
+            return max_val_arr
+        else:
+            # TODO: This is not the correct implementation for getting a single quantile.
+            # However, this is not used in the current implementation.
+            return np.mean(quantile)
+
+    def compute_individual_mean_std(self):
+        assert self._is_train is True, 'This is just allowed for training data'
+        mean_data = self.get_channelordered_metadata(self._scaled_data[0]['mean'][:])[:,1]
+        std_data = self.get_channelordered_metadata(self._scaled_data[0]['std'][:])[:,1]
+        return mean_data[None, :, None, None], std_data[None, :, None, None]
+
+    def compute_mean_std(self, allow_for_validation_data=False):
+        """
+        Note that we must compute this only for training data.
+        """
+        assert self._is_train is True, 'This is just allowed for training data'
+        mean_data = self.get_channelordered_metadata(self._scaled_data[0]['mean'][:])[:,1]
+        std_data = self.get_channelordered_metadata(self._scaled_data[0]['std'][:])[:,1]
+
+        if self._use_one_mu_std is True:
+            if self._input_is_sum:
+                mean = np.sum(mean_data).reshape(1, 1, 1, 1)
+                std = np.linalg.norm(std_data).reshape(1, 1, 1, 1)
+            else:
+                mean = np.mean(mean_data).reshape(1, 1, 1, 1)
+                std = np.std(std_data).reshape(1, 1, 1, 1)
+            
+            mean = np.repeat(mean, 2, axis=1)
+            std = np.repeat(std, 2, axis=1)
+
+            if self._skip_normalization_using_mean:
+                mean = np.zeros_like(mean)
+
+            return mean, std
+
+        elif self._use_one_mu_std is False:
+            return self.compute_individual_mean_std()
+
+        elif self._use_one_mu_std is None:
+            return np.array([0.0, 0.0]).reshape(1, 2, 1, 1), np.array([1.0, 1.0]).reshape(1, 2, 1, 1)
+
 
     def upperclip_data(self):
         """
@@ -104,12 +159,12 @@ class MultiScaleZarrDloader(MultiScaleTiffDloader):
             idx = index
         else:
             idx, _ = index
-        imgs = [self._scaled_data[scaled_index][idx % self.N, ..., ch][None] for ch in self._channels]
+        imgs = [self._scaled_data[scaled_index]['raw'][idx % self.N, ..., ch][None] for ch in self._channels]
         return imgs
 
 
 if __name__ == '__main__':
-    from usplit.configs.microscopy_multi_channel_lvae_config import get_config
+    from usplit.configs.lc_paviaATN_config import get_config
     cfg = get_config()
     fpath = '/Users/ashesh.ashesh/Documents/Datasets/test_microscopy/downsampled_data'
     datasplit_type = DataSplitType.Train
@@ -131,5 +186,8 @@ if __name__ == '__main__':
                                  max_val=None,
                                  overlapping_padding_kwargs=None,
                                  padding_kwargs=padding_kwargs)
-    print('started\n')
+    mean, std = dset.compute_mean_std(
+    )
+    dset.set_mean_std(mean, std)
     inp, tar = dset[0]
+    print(inp.shape, tar.shape)
