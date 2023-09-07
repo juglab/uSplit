@@ -29,7 +29,8 @@ def _generate_output_zarrs(output_directory, datasplit_subdir, num_samples, data
         dsample_shape = (num_samples, data_shape[1] // dsample_factor, data_shape[2] // dsample_factor, data_shape[3])
         # print(scale_idx, dsample_shape)
         dsample_chunks = (1, *dsample_shape[1:3], 1)
-        dsample_output_zarr = zarr.open(zarr_path, mode='w', shape=dsample_shape, chunks=dsample_chunks, dtype='i4')
+        dsample_output_zarr = zarr.open(zarr_path, mode='w')
+        _ = dsample_output_zarr.create_dataset('raw', shape=dsample_shape, chunks=dsample_chunks, dtype='i4')
         output_zarrs.append(dsample_output_zarr)
     return output_zarrs
 
@@ -64,6 +65,8 @@ def generate(zarr_path: str,
     quantile_dict = {ch_idx: [] for ch_idx in range(data.shape[-1])}
 
     for n_idx in tqdm(range(data.shape[0])):
+        if n_idx >20:
+            break
         for ch_idx in tqdm(range(data.shape[-1])):
             frame = data[n_idx, ..., ch_idx]
             downscaled_frame = frame
@@ -76,16 +79,17 @@ def generate(zarr_path: str,
 
                 if scale_idx > 0:
                     # there is no downscaling for 1st.
-                    downscaled_frame = resize(downscaled_frame, train_output_zarrs[scale_idx].shape[1:3])
+                    downscaled_frame = resize(downscaled_frame, train_output_zarrs[scale_idx]['raw'].shape[1:3])
 
                 if n_idx in trainidx:
-                    train_output_zarrs[scale_idx][train_n_idx, ..., ch_idx] = downscaled_frame
+                    train_output_zarrs[scale_idx]['raw'][train_n_idx, ..., ch_idx] = downscaled_frame
 
                 if n_idx in validx:
-                    val_output_zarrs[scale_idx][val_n_idx, ..., ch_idx] = downscaled_frame
+                    val_output_zarrs[scale_idx]['raw'][val_n_idx, ..., ch_idx] = downscaled_frame
 
                 if n_idx in testidx:
-                    test_output_zarrs[scale_idx][test_n_idx, ..., ch_idx] = downscaled_frame
+                    test_output_zarrs[scale_idx]['raw'][test_n_idx, ..., ch_idx] = downscaled_frame
+
         if n_idx in trainidx:
             train_n_idx += 1
         elif n_idx in validx:
@@ -93,12 +97,10 @@ def generate(zarr_path: str,
         elif n_idx in testidx:
             test_n_idx += 1
 
-    train_output_zarrs[0]['mean'] = {k: np.mean(mean_dict[k]) for k in mean_dict.keys()}
-    train_output_zarrs[0]['std'] = {k: np.mean(std_dict[k]) for k in std_dict.keys()}
-    train_output_zarrs[0]['quantile'] = {quantile: {k: np.mean(quantile_dict[k]) for k in quantile_dict.keys()}}
+    train_output_zarrs[0]['mean'] = [(k, np.mean(mean_dict[k])) for k in sorted(mean_dict.keys())]
+    train_output_zarrs[0]['std'] = [(k, np.mean(std_dict[k])) for k in sorted(std_dict.keys())]
+    train_output_zarrs[0]['quantile'] = [(quantile,k, np.mean(quantile_dict[k])) for k in sorted(quantile_dict.keys())]
 
-    import pdb
-    pdb.set_trace()
     return train_output_zarrs, val_output_zarrs, test_output_zarrs
 
 
