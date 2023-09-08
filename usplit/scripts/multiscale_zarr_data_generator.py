@@ -9,12 +9,6 @@ from tqdm import tqdm
 import zarr
 from usplit.core.data_split_type import DataSplitType, get_datasplit_tuples
 
-# subdirectory where the downsampled data will be stored. This subdirectory will get created inside the directory where the original data is present.
-DOWNSAMPLE_SUBDIR = 'downsampled_data'
-# dset = zarr.open('data2.zarr', mode='w')
-# dset.create_dataset('raw',data=z2[:], chunk_size=(1,*z2.shape[1:3],1))
-
-
 def _generate_output_zarrs(output_directory, datasplit_subdir, num_samples, data_shape, num_scales, overwrite):
     output_zarrs = []
     for scale_idx in range(0, num_scales):
@@ -35,7 +29,9 @@ def _generate_output_zarrs(output_directory, datasplit_subdir, num_samples, data
     return output_zarrs
 
 
-def generate(zarr_path: str,
+def generate(output_directory:str , 
+             input_zarr_path: str,
+             input_zarr_group:str,
              channel_order: str,
              num_scales: int,
              val_fraction: float = None,
@@ -43,15 +39,17 @@ def generate(zarr_path: str,
              overwrite: bool = True,
              quantile: float = 0.995):
     """
-    To ensure tight coupling between original data and downsampled data, the downsampled data is stored in the same directory.
+    Generate multiscale data from a zarr file.
+    A zarr file is created for each scale. scale=0 corresponds to original resolution.
     """
     assert set(channel_order).issubset('THWNZC')
     assert len(channel_order) == 4, "Only 4 dimensional data is supported"
     assert channel_order[-3:] in ['HWC', 'WHC'], 'Last dimension must be the channel dimension'
 
-    input_dir = os.path.dirname(zarr_path)
-    output_directory = os.path.join(input_dir, DOWNSAMPLE_SUBDIR)
-    data = zarr.open(zarr_path, mode='r')
+    data = zarr.open(input_zarr_path, mode='r')
+    if input_zarr_group:
+        data = data[input_zarr_group]
+
     trainidx, validx, testidx = get_datasplit_tuples(val_fraction, test_fraction, data.shape[0])
     train_output_zarrs = _generate_output_zarrs(output_directory, DataSplitType.name(DataSplitType.Train),
                                                 len(trainidx), data.shape, num_scales, overwrite)
@@ -106,12 +104,20 @@ def generate(zarr_path: str,
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'zarr_data_path',
+        'input_zarr_path',
         help=
         'Path to zarr data. Note that we expect the data shape to be (N,H,W,C) where N can be either Time, Z, or independent acquisition dimension. C is expected to be the channel dimension.'
     )
+
+    parser.add_argument('output_directory', help='Directory where the output zarrs will be stored')
     parser.add_argument('channel_order')
     parser.add_argument('num_scales', type=int, help='Desired number of downsampling scales', default=5)
+    parser.add_argument(
+        '--input_zarr_group',
+        help=
+        'Name of the group in the zarr file. If the zarr file is not grouped, then this argument can be ignored.',
+        default=None,
+    )
     parser.add_argument('--val_fraction', type=float, help='Fraction of data to be used as validation set', default=0.1)
     parser.add_argument('--test_fraction', type=float, help='Fraction of data to be used as test set', default=0.1)
     parser.add_argument('--overwrite',
@@ -119,7 +125,9 @@ if __name__ == '__main__':
                         action='store_true')
 
     args = parser.parse_args()
-    data = generate(args.zarr_data_path,
+    data = generate(args.output_directory,
+                    args.input_zarr_path,
+                    args.input_zarr_group,
                     args.channel_order,
                     args.num_scales,
                     val_fraction=args.val_fraction,
