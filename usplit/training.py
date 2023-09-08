@@ -18,8 +18,8 @@ from usplit.core.loss_type import LossType
 from usplit.core.metric_monitor import MetricMonitor
 from usplit.core.model_type import ModelType
 from usplit.data_loader.multi_channel_determ_tiff_dloader import MultiChDeterministicTiffDloader
-from usplit.data_loader.multiscale_mc_tiff_dloader import MultiScaleTiffDloader
-from usplit.data_loader.multiscale_mc_zarr_dloader import MultiScaleZarrDloader
+from usplit.data_loader.lc_tiff_dloader import MultiScaleTiffDloader
+from usplit.data_loader.lc_zarr_dloader import MultiScaleZarrDloader
 from usplit.nets.model_utils import create_model
 from usplit.training_utils import ValEveryNSteps
 

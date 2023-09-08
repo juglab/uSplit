@@ -1,3 +1,6 @@
+"""
+Multiscale data loader for zarr data, to be used with μSplit models
+"""
 import os
 from typing import Tuple, Union
 
@@ -6,7 +9,7 @@ from tqdm import tqdm
 
 import zarr
 from usplit.core.data_split_type import DataSplitType
-from usplit.data_loader.multiscale_mc_tiff_dloader import MultiScaleTiffDloader
+from usplit.data_loader.lc_tiff_dloader import MultiScaleTiffDloader
 from usplit.data_loader.patch_index_manager import GridAlignement
 
 
@@ -166,8 +169,7 @@ class MultiScaleZarrDloader(MultiScaleTiffDloader):
 if __name__ == '__main__':
     from usplit.configs.lc_paviaATN_config import get_config
     cfg = get_config()
-    fpath = '/Users/ashesh.ashesh/Documents/Datasets/test_microscopy/downsampled_data'
-    datasplit_type = DataSplitType.Train
+    fpath = '/group/jug/ashesh/data/microscopy_zarr/'
     num_scales = 5
     padding_kwargs = {'mode': cfg.data.padding_mode}
     if 'padding_value' in cfg.data and cfg.data.padding_value is not None:
@@ -175,12 +177,12 @@ if __name__ == '__main__':
 
     dset = MultiScaleZarrDloader(cfg.data,
                                  fpath,
-                                 datasplit_type,
-                                 val_fraction=0.1,
-                                 test_fraction=0.1,
-                                 normalized_input=True,
-                                 enable_rotation_aug=False,
-                                 use_one_mu_std=None,
+                                 DataSplitType.Train,
+                                 val_fraction=cfg.training.val_fraction,
+                                 test_fraction=cfg.training.test_fraction,
+                                 normalized_input=cfg.data.normalized_input,
+                                 enable_rotation_aug=cfg.data.train_aug_rotate,
+                                 use_one_mu_std=cfg.data.use_one_mu_std,
                                  num_scales=num_scales,
                                  enable_random_cropping=False,
                                  max_val=None,
@@ -191,3 +193,9 @@ if __name__ == '__main__':
     dset.set_mean_std(mean, std)
     inp, tar = dset[0]
     print(inp.shape, tar.shape)
+#     (Pdb) dset.compute_individual_mean_std()[0]
+#           array([[[[558.14064789]],
+#         [[252.59873675]]]])
+# (Pdb) dset.compute_individual_mean_std()[1]
+#           array([[[[240.40617161]],
+#         [[101.30987838]]]])
