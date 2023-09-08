@@ -12,11 +12,6 @@ def train_val_data(fpath, data_config, datasplit_type: DataSplitType, val_fracti
     print(f'Loading {fpath} with Channels {data_config.channel_1},{data_config.channel_2},'
           f'datasplit mode:{DataSplitType.name(datasplit_type)}')
     data = load_tiff(fpath)
-    if data_config.data_type == DataType.Prevedel_EMBL:
-        # Ensure that the last dimension is the channel dimension.
-        data = data[..., None]
-        data = np.swapaxes(data, 1, 4)
-        data = data.squeeze()
 
     return _train_val_data(data,
                            datasplit_type,
