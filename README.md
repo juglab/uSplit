@@ -49,3 +49,19 @@ We have also provided the configs for training on our PaviaATN dataset and Sinos
 
 ## Evaluation
 For evaluation, we have provided the notebook [here](examples/Evaluate.ipynb) and the pre-trained models [here](https://zenodo.org/record/8324707).
+
+## Training on your own data. 
+Codebase will require minimal changes if the data is organized in one of the three ways:
+1. A single tiff file with data shape (N,H,W,C) where C denotes the channel dimension which one intends to split. In this case, simply use `DataType.OptiMEM100_014` as the `data.data_type` in the config. 
+2. Two tiff files, each with data shape () and corresponding to one channel. Use `DataType.SeparateTiffData` as the `data.data_type` in the config.
+3. A .zarr file directory with data shape (N,H,W,C). Use `DataType.SingleZarrData` as the `data.data_type` in the config.
+
+No other changes should be required and at this point, one can start the training. Note that input will be created by summing the two channels present in the data.
+
+### Steps for data organized in a different way.
+1. Add an entry in `DataType` class for your own data. For example,
+```
+MyDataABC = 17
+```
+2. In `train_val_data.py`, create a function which returns returns the train/val/test data with (N,H,W,C) dimension arrangement.
+3. In `training.py:create_dataset()` you may have to set `dataclass` variable appropriately in case your data is .zarr. 

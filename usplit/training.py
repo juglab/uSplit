@@ -26,93 +26,89 @@ from usplit.training_utils import ValEveryNSteps
 
 def create_dataset(config, datadir, raw_data_dict=None, skip_train_dataset=False):
 
-    if config.data.data_type in [
-            DataType.OptiMEM100_014, DataType.CustomSinosoid, DataType.CustomSinosoidThreeCurve,
-            DataType.SeparateTiffData, DataType.SingleZarrData
-    ]:
-        if config.data.data_type == DataType.OptiMEM100_014:
-            datapath = os.path.join(datadir, 'OptiMEM100x014.tif')
-        else:
-            datapath = datadir
+    if config.data.data_type == DataType.OptiMEM100_014:
+        datapath = os.path.join(datadir, 'OptiMEM100x014.tif')
+    else:
+        datapath = datadir
 
-        normalized_input = config.data.normalized_input
-        use_one_mu_std = config.data.use_one_mu_std
-        train_aug_rotate = config.data.train_aug_rotate
-        enable_random_cropping = config.data.deterministic_grid is False
-        lowres_supervision = config.model.model_type == ModelType.LadderVAEMultiTarget
-        if 'multiscale_lowres_count' in config.data and config.data.multiscale_lowres_count is not None:
-            padding_kwargs = {'mode': config.data.padding_mode}
-            if 'padding_value' in config.data and config.data.padding_value is not None:
-                padding_kwargs['constant_values'] = config.data.padding_value
+    normalized_input = config.data.normalized_input
+    use_one_mu_std = config.data.use_one_mu_std
+    train_aug_rotate = config.data.train_aug_rotate
+    enable_random_cropping = config.data.deterministic_grid is False
+    lowres_supervision = config.model.model_type == ModelType.LadderVAEMultiTarget
+    if 'multiscale_lowres_count' in config.data and config.data.multiscale_lowres_count is not None:
+        padding_kwargs = {'mode': config.data.padding_mode}
+        if 'padding_value' in config.data and config.data.padding_value is not None:
+            padding_kwargs['constant_values'] = config.data.padding_value
 
-            dataclass = MultiScaleZarrDloader if config.data.data_type == DataType.SingleZarrData else MultiScaleTiffDloader
-            train_data = None if skip_train_dataset else dataclass(config.data,
-                                                                   datapath,
-                                                                   datasplit_type=DataSplitType.Train,
-                                                                   val_fraction=config.training.val_fraction,
-                                                                   test_fraction=config.training.test_fraction,
-                                                                   normalized_input=normalized_input,
-                                                                   use_one_mu_std=use_one_mu_std,
-                                                                   enable_rotation_aug=train_aug_rotate,
-                                                                   enable_random_cropping=enable_random_cropping,
-                                                                   num_scales=config.data.multiscale_lowres_count,
-                                                                   lowres_supervision=lowres_supervision,
-                                                                   padding_kwargs=padding_kwargs,
-                                                                   allow_generation=True)
-            max_val = train_data.get_max_val()
+        dataclass = MultiScaleZarrDloader if config.data.data_type == DataType.SingleZarrData else MultiScaleTiffDloader
+        train_data = None if skip_train_dataset else dataclass(config.data,
+                                                                datapath,
+                                                                datasplit_type=DataSplitType.Train,
+                                                                val_fraction=config.training.val_fraction,
+                                                                test_fraction=config.training.test_fraction,
+                                                                normalized_input=normalized_input,
+                                                                use_one_mu_std=use_one_mu_std,
+                                                                enable_rotation_aug=train_aug_rotate,
+                                                                enable_random_cropping=enable_random_cropping,
+                                                                num_scales=config.data.multiscale_lowres_count,
+                                                                lowres_supervision=lowres_supervision,
+                                                                padding_kwargs=padding_kwargs,
+                                                                allow_generation=True)
+        max_val = train_data.get_max_val()
 
-            val_data = dataclass(
-                config.data,
-                datapath,
-                datasplit_type=DataSplitType.Val,
-                val_fraction=config.training.val_fraction,
-                test_fraction=config.training.test_fraction,
-                normalized_input=normalized_input,
-                use_one_mu_std=use_one_mu_std,
-                enable_rotation_aug=False,  # No rotation aug on validation
-                enable_random_cropping=False,
-                # No random cropping on validation. Validation is evaluated on determistic grids
-                num_scales=config.data.multiscale_lowres_count,
-                lowres_supervision=lowres_supervision,
-                padding_kwargs=padding_kwargs,
-                allow_generation=False,
-                max_val=max_val,
-            )
+        val_data = dataclass(
+            config.data,
+            datapath,
+            datasplit_type=DataSplitType.Val,
+            val_fraction=config.training.val_fraction,
+            test_fraction=config.training.test_fraction,
+            normalized_input=normalized_input,
+            use_one_mu_std=use_one_mu_std,
+            enable_rotation_aug=False,  # No rotation aug on validation
+            enable_random_cropping=False,
+            # No random cropping on validation. Validation is evaluated on determistic grids
+            num_scales=config.data.multiscale_lowres_count,
+            lowres_supervision=lowres_supervision,
+            padding_kwargs=padding_kwargs,
+            allow_generation=False,
+            max_val=max_val,
+        )
 
-        else:
-            train_data_kwargs = {'allow_generation': True}
-            val_data_kwargs = {'allow_generation': False}
-            train_data_kwargs['enable_random_cropping'] = enable_random_cropping
-            val_data_kwargs['enable_random_cropping'] = False
-            data_class = MultiChDeterministicTiffDloader
-            train_data = None if skip_train_dataset else data_class(config.data,
-                                                                    datapath,
-                                                                    datasplit_type=DataSplitType.Train,
-                                                                    val_fraction=config.training.val_fraction,
-                                                                    test_fraction=config.training.test_fraction,
-                                                                    normalized_input=normalized_input,
-                                                                    use_one_mu_std=use_one_mu_std,
-                                                                    enable_rotation_aug=train_aug_rotate,
-                                                                    **train_data_kwargs)
+    else:
+        train_data_kwargs = {'allow_generation': True}
+        val_data_kwargs = {'allow_generation': False}
+        train_data_kwargs['enable_random_cropping'] = enable_random_cropping
+        val_data_kwargs['enable_random_cropping'] = False
+        data_class = MultiChDeterministicTiffDloader
+        train_data = None if skip_train_dataset else data_class(config.data,
+                                                                datapath,
+                                                                datasplit_type=DataSplitType.Train,
+                                                                val_fraction=config.training.val_fraction,
+                                                                test_fraction=config.training.test_fraction,
+                                                                normalized_input=normalized_input,
+                                                                use_one_mu_std=use_one_mu_std,
+                                                                enable_rotation_aug=train_aug_rotate,
+                                                                **train_data_kwargs)
 
-            max_val = train_data.get_max_val()
-            val_data = data_class(
-                config.data,
-                datapath,
-                datasplit_type=DataSplitType.Val,
-                val_fraction=config.training.val_fraction,
-                test_fraction=config.training.test_fraction,
-                normalized_input=normalized_input,
-                use_one_mu_std=use_one_mu_std,
-                enable_rotation_aug=False,  # No rotation aug on validation
-                max_val=max_val,
-                **val_data_kwargs,
-            )
+        max_val = train_data.get_max_val()
+        val_data = data_class(
+            config.data,
+            datapath,
+            datasplit_type=DataSplitType.Val,
+            val_fraction=config.training.val_fraction,
+            test_fraction=config.training.test_fraction,
+            normalized_input=normalized_input,
+            use_one_mu_std=use_one_mu_std,
+            enable_rotation_aug=False,  # No rotation aug on validation
+            max_val=max_val,
+            **val_data_kwargs,
+        )
 
-        # For normalizing, we should be using the training data's mean and std.
-        mean_val, std_val = train_data.compute_mean_std()
-        train_data.set_mean_std(mean_val, std_val)
-        val_data.set_mean_std(mean_val, std_val)
+    # For normalizing, we should be using the training data's mean and std.
+    mean_val, std_val = train_data.compute_mean_std()
+    train_data.set_mean_std(mean_val, std_val)
+    val_data.set_mean_std(mean_val, std_val)
     return train_data, val_data
 
 
