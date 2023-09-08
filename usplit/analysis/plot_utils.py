@@ -5,7 +5,6 @@ import numpy as np
 import seaborn as sns
 import torch
 
-from usplit.analysis.critic_notebook_utils import get_label_separated_loss, get_mmse_dict
 from usplit.analysis.lvae_utils import get_img_from_forward_output
 
 
@@ -184,15 +183,10 @@ def plot_imgs_from_idx(idx_list,
 
             recon_normalized, td_data = model(x_normalized)
             imgs = get_img_from_forward_output(recon_normalized, model)
-            loss_dic = get_mmse_dict(model, x_normalized, target_normalized, 1, model_type, psnr_type=psnr_type)
-            ll1, ll2 = get_label_separated_loss(loss_dic['mmse_rec_loss'])
 
             inp = inp.cpu().numpy()
             tar = tar.cpu().numpy()
             imgs = imgs.cpu().numpy()
-
-            psnr1 = loss_dic['psnr_l1'][0]
-            psnr2 = loss_dic['psnr_l2'][0]
 
             ax[ax_idx, 0].imshow(inp[0, 0])
             if inset_pixel_kde:
@@ -213,7 +207,6 @@ def plot_imgs_from_idx(idx_list,
 
             ax[ax_idx, 1].imshow(tar[0, 0], vmin=l1_min, vmax=l1_max)
             ax[ax_idx, 2].imshow(imgs[0, 0], vmin=l1_min, vmax=l1_max)
-            add_text(ax[ax_idx, 2], f'PSNR:{psnr1:.1f}', inp.shape[-2:])
             txt = f'{int(l1_min)}-{int(l1_max)}'
             add_text(ax[ax_idx, 2], txt, inp.shape[-2:], place='BOTTOM_RIGHT')
             add_text(ax[ax_idx, 1], txt, inp.shape[-2:], place='BOTTOM_RIGHT')
@@ -235,7 +228,6 @@ def plot_imgs_from_idx(idx_list,
             ax[ax_idx, 3].imshow(tar[0, 1], vmin=l2_min, vmax=l2_max)
             ax[ax_idx, 4].imshow(imgs[0, 1], vmin=l2_min, vmax=l2_max)
             txt = f'{int(l2_min)}-{int(l2_max)}'
-            add_text(ax[ax_idx, 4], f'PSNR:{psnr2:.1f}', inp.shape[-2:])
             add_text(ax[ax_idx, 4], txt, inp.shape[-2:], place='BOTTOM_RIGHT')
             add_text(ax[ax_idx, 3], txt, inp.shape[-2:], place='BOTTOM_RIGHT')
             if inset_pixel_kde:
@@ -250,8 +242,6 @@ def plot_imgs_from_idx(idx_list,
                               color1=color_ch2,
                               color2=color_generated)
 
-            ax[ax_idx, 2].set_title(f'Error: {ll1[0]:.3f}')
-            ax[ax_idx, 4].set_title(f'Error: {ll2[0]:.3f}')
             ax[ax_idx, 0].set_title(f'Id:{img_idx}')
             ax[ax_idx, 1].set_title('Image 1')
             ax[ax_idx, 3].set_title('Image 2')
