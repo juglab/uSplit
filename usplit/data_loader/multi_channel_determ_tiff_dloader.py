@@ -25,7 +25,8 @@ class MultiChDeterministicTiffDloader:
                  allow_generation=False,
                  max_val=None,
                  grid_alignment=GridAlignement.LeftTop,
-                 overlapping_padding_kwargs=None):
+                 overlapping_padding_kwargs=None,
+                 test_img_arr: np.ndarray = None):
         """
         Here, an image is split into grids of size img_sz.
         Args:
@@ -34,6 +35,7 @@ class MultiChDeterministicTiffDloader:
                 and repeat_factor is 5, then index upto 12*5 = 60 is allowed.
             use_one_mu_std: If this is set to true, then one mean and stdev is used
                 for both channels. Otherwise, two different meean and stdev are used.
+            test_img_arr: If this is not None, then this is used for testing.
 
         """
         self._fpath = fpath
@@ -46,7 +48,8 @@ class MultiChDeterministicTiffDloader:
                        datasplit_type,
                        val_fraction=val_fraction,
                        test_fraction=test_fraction,
-                       allow_generation=allow_generation)
+                       allow_generation=allow_generation,
+                       test_img_arr=test_img_arr)
         self._normalized_input = normalized_input
         self._quantile = data_config.get('clip_percentile', 0.995)
         self._channelwise_quantile = data_config.get('channelwise_quantile', False)
@@ -115,13 +118,23 @@ class MultiChDeterministicTiffDloader:
     def get_data_shape(self):
         return self._data.shape
 
-    def load_data(self, data_config, datasplit_type, val_fraction=None, test_fraction=None, allow_generation=None):
-        self._data = get_train_val_data(data_config,
-                                        self._fpath,
-                                        datasplit_type,
-                                        val_fraction=val_fraction,
-                                        test_fraction=test_fraction,
-                                        allow_generation=allow_generation)
+    def load_data(self, data_config, datasplit_type, val_fraction=None, test_fraction=None, allow_generation=None,test_img_arr=None):
+        if test_img_arr is not None:
+            assert datasplit_type == DataSplitType.Test, 'test_img_arr can only be used for testing.'
+            assert len(test_img_arr.shape) ==3, 'test_img_arr must be a 3D array. (Batch, H, W)'
+            self._data = np.repeat(test_img_arr, 2, axis=-1)
+            
+            if self._input_is_sum:
+                # sum of the two channels should be the input.
+                self._data = self._data/2
+
+        else:
+            self._data = get_train_val_data(data_config,
+                                            self._fpath,
+                                            datasplit_type,
+                                            val_fraction=val_fraction,
+                                            test_fraction=test_fraction,
+                                            allow_generation=allow_generation)
         self.N = len(self._data)
 
     def save_background(self, channel_idx, frame_idx, background_value):
