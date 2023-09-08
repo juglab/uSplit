@@ -122,7 +122,7 @@ class MultiChDeterministicTiffDloader:
         if test_img_arr is not None:
             assert datasplit_type == DataSplitType.Test, 'test_img_arr can only be used for testing.'
             assert len(test_img_arr.shape) ==3, 'test_img_arr must be a 3D array. (Batch, H, W)'
-            self._data = np.repeat(test_img_arr, 2, axis=-1)
+            self._data = np.repeat(test_img_arr[...,None], 2, axis=-1)
             
             if self._input_is_sum:
                 # sum of the two channels should be the input.
