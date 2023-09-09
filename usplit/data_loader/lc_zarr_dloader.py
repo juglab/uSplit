@@ -79,7 +79,8 @@ class MultiScaleZarrDloader(MultiScaleTiffDloader):
             idx.append(matching_rows[0])
         return zarr_metadata[idx]
     
-    def load_data(self, data_config, datasplit_type, val_fraction=None, test_fraction=None, allow_generation=None):
+    def load_data(self, data_config, datasplit_type, val_fraction=None, test_fraction=None, allow_generation=None, test_img_arr=None):
+        assert test_img_arr is None, 'test_img_arr is not supported for zarr data'
         for scale_idx in tqdm(range(0, self.num_scales)):
             basedir = self._fpath
             tiff_fpath = os.path.join(basedir, DataSplitType.name(self._datasplit_type), f'{scale_idx}.zarr')
