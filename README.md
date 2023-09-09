@@ -54,7 +54,10 @@ For evaluation, we have provided the pre-trained models [here](https://zenodo.or
 Codebase will require minimal changes if the data is organized in one of the three ways:
 1. A single tiff file with data shape (N,H,W,C) where C denotes the channel dimension which one intends to split. In this case, simply use `DataType.OptiMEM100_014` as the `data.data_type` in the config. 
 2. Two tiff files, each with data shape (N, H, W) and corresponding to one channel. Use `DataType.SeparateTiffData` as the `data.data_type` in the config.
-3. A .zarr file directory with data shape (N,H,W,C). Use `DataType.SingleZarrData` as the `data.data_type` in the config.
+3. A .zarr file directory with data shape (N,H,W,C). Use `DataType.SingleZarrData` as the `data.data_type` in the config. In this case, we need to apriori split 'raw' .zarr into train/validation/test. To do this, we need to run the following command:
+    ```bash
+    python usplit/scripts/multiscale_zarr_data_generator.py /home/ubuntu/data/raw.zarr/ /home/ubuntu/data/microscopy_zarr ZHWC 5 --input_zarr_group='raw' --overwrite
+    ```
 
 No other changes should be required and at this point, one can start the training. Note that input will be created by summing the two channels present in the data.
 
