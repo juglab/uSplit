@@ -4,11 +4,12 @@
 This is the official implementation of [μSplit: image decomposition for fluorescence microscopy](https://arxiv.org/abs/2211.12872).
 
 ## Installation
+In case you don't have `mamba`, install it from [here](https://mamba.readthedocs.io/en/latest/mamba-installation.html#mamba-install).
 ```bash
 git clone https://github.com/juglab/uSplit.git
 cd uSplit
-conda create -n usplit python=3.9
-conda activate usplit
+mamba create -n usplit python=3.9
+mamba activate usplit
 ./install_deps.sh
 pip install -e .
 ```
