@@ -17,4 +17,4 @@ mamba install seaborn -c conda-forge -y
 mamba install nbconvert -y
 mamba install -c anaconda ipykernel -y
 mamba install -c conda-forge czifile -y
-python -m pip install zarr
+mamba install -c conda-forge zarr -y
