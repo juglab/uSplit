@@ -13,7 +13,7 @@ mamba activate usplit
 ./install_deps.sh
 pip install -e .
 ```
-In case, one wants to do training, then one also needs to create an account on [wandb](https://docs.wandb.ai/quickstart). This is used for logging training and evaluation metrics. In case you do not want to use wandb, you can replace the logger [here](usplit/training.py#L406) with a logger of your choice and comment out [here](usplit/training.py#L349).
+In case, one wants to do training, then one also needs to create an account on [wandb](https://docs.wandb.ai/quickstart). This is used for logging training and evaluation metrics. In case you do not want to use wandb, you can replace the logger [here](usplit/training.py#L205) with a logger of your choice and comment out [here](usplit/training.py#L148).
 
 ## Data
 For Hagen et al. dataset, please download the data from [here](http://gigadb.org/dataset/100888). You need to download the following files:
