@@ -1,7 +1,7 @@
 # μSplit
 <img src="./images/SplittedImgs_small.png" width="700px"></img>
 
-This is the official implementation of [μSplit: image decomposition for fluorescence microscopy](https://arxiv.org/abs/2211.12872).
+This is the official implementation of [μSplit: image decomposition for fluorescence microscopy](https://arxiv.org/abs/2211.12872). For a brief overview, please see our [blog post](https://ashesh-0.github.io/uSplit/).
 
 ## Installation
 In case you don't have `mamba`, install it from [here](https://mamba.readthedocs.io/en/latest/mamba-installation.html#mamba-install).
