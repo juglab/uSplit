@@ -9,6 +9,7 @@ import torchvision.transforms.functional as F
 import wandb
 from torch import nn
 from torch.autograd import Variable
+import ml_collections
 
 from usplit.core.data_utils import Interpolate, crop_img_tensor, pad_img_tensor
 from usplit.core.likelihoods import GaussianLikelihood, NoiseModelLikelihood
@@ -35,6 +36,8 @@ class LadderVAE(pl.LightningModule):
 
     def __init__(self, data_mean, data_std, config, use_uncond_mode_at=[], target_ch=2):
         super().__init__()
+        if isinstance(config, dict):
+          config = ml_collections.ConfigDict(config)
         self.lr = config.training.lr
         self.lr_scheduler_patience = config.training.lr_scheduler_patience
         self.ch1_recons_w = config.loss.get('ch1_recons_w', 1)
