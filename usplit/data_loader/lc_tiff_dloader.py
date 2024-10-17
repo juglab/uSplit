@@ -2,7 +2,6 @@
 Here, the input image is of multiple resolutions. Target image is the same.
 """
 from typing import List, Tuple, Union
-
 import numpy as np
 from skimage.transform import resize
 
@@ -136,6 +135,8 @@ class MultiScaleTiffDloader(MultiChDeterministicTiffDloader):
     def __getitem__(self, index: Union[int, Tuple[int, int]]):
         img_tuples = self._get_img(index)
         assert self._enable_rotation is False
+        
+        img_tuples = self.normalize_img(*img_tuples)
 
         if self._lowres_supervision:
             target = np.concatenate([img[:, None] for img in img_tuples], axis=1)
@@ -156,9 +157,36 @@ class MultiScaleTiffDloader(MultiChDeterministicTiffDloader):
         output.append(grid_size)
         return tuple(output)
 
-        # if isinstance(index, int):
-        #     return inp, target
 
-        # _, grid_size = index
-        # return inp, target, grid_size
+if __name__ == '__main__':
+    from usplit.configs.lc_hagen_config import get_config
+    config = get_config()
+    padding_kwargs = {
+    'mode':config.data.get('padding_mode','constant'),
+    }
 
+    dset = MultiScaleTiffDloader(config.data,
+                                           '/group/jug/ashesh/data/ventura_gigascience/',
+                                           DataSplitType.Train,
+                                           val_fraction=config.training.val_fraction,
+                                           test_fraction=config.training.test_fraction,
+                                           normalized_input=config.data.normalized_input,
+                                           enable_rotation_aug=False,#config.data.normalized_input,
+                                           enable_random_cropping=config.data.deterministic_grid is False,
+                                           use_one_mu_std=config.data.use_one_mu_std,
+                                           num_scales= config.data.multiscale_lowres_count,
+                                           allow_generation=False,
+                                           max_val=None,
+                                           grid_alignment=GridAlignement.LeftTop,
+                                           overlapping_padding_kwargs=None,
+                                           padding_kwargs=padding_kwargs)
+
+    mean, std = dset.compute_mean_std()
+    dset.set_mean_std(mean, std)
+
+    inp, target = dset[0]
+    import matplotlib.pyplot as plt
+    _, ax = plt.subplots(figsize=(6,6))
+    ax.imshow(inp[0])
+    for i in range(100):
+        _ = dset[i]

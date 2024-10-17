@@ -1,5 +1,5 @@
 from typing import Tuple, Union
-
+# import sys; sys.path.append('../../')
 import albumentations as A
 import numpy as np
 
@@ -76,6 +76,13 @@ class MultiChDeterministicTiffDloader:
         if self._is_train:
             self._ch1_min_alpha = data_config.get('ch1_min_alpha', None)
             self._ch1_max_alpha = data_config.get('ch1_max_alpha', None)
+            self._alpha_dirac_delta_weight = data_config.get('alpha_dirac_delta_weight', 0.0)
+            self._alpha_dirac_delta_value = data_config.get('alpha_dirac_delta_value', 0.5)
+            assert self._alpha_dirac_delta_weight >= 0.0 and self._alpha_dirac_delta_weight <= 1.0, 'Invalid alpha_dirac_delta_weight'
+            if self._ch1_min_alpha is not None:
+                assert self._alpha_dirac_delta_value >= self._ch1_min_alpha, 'Invalid alpha_dirac_delta_value'
+                assert self._alpha_dirac_delta_value <= self._ch1_max_alpha, 'Invalid alpha_dirac_delta_value'
+
             self.set_img_sz(data_config.image_size,
                             data_config.grid_size if 'grid_size' in data_config else data_config.image_size)
         else:
@@ -464,18 +471,13 @@ class MultiChDeterministicTiffDloader:
     def _compute_input_with_alpha(self, img_tuples, alpha):
         assert len(img_tuples) == 2, f'Expected {len(img_tuples)} to be 2'
         assert self._normalized_input is True, "normalization should happen here"
-
         inp = img_tuples[0] * alpha + img_tuples[1] * (1 - alpha)
-        mean, std = self.get_mean_std()
-        mean = mean.squeeze()
-        std = std.squeeze()
-        assert mean[0] == mean[1] and len(mean) == 2
-        assert std[0] == std[1] and len(std) == 2
-
-        inp = (inp - mean[0]) / std[0]
         return inp.astype(np.float32)
 
     def _sample_alpha(self):
+        if np.random.rand() < self._alpha_dirac_delta_weight:
+            return self._alpha_dirac_delta_value
+        
         alpha_width = self._ch1_max_alpha - self._ch1_min_alpha
         alpha = np.random.rand() * (alpha_width) + self._ch1_min_alpha
         return alpha
@@ -497,13 +499,18 @@ class MultiChDeterministicTiffDloader:
                 img_tuples = self.replace_with_empty_patch(img_tuples)
 
         if self._enable_rotation:
+            raise NotImplementedError('Rotation is not implemented correctly')
             # passing just the 2D input. 3rd dimension messes up things.
             assert len(img_tuples) == 2
             rot_dic = self._rotation_transform(image=img_tuples[0][0], mask=img_tuples[1][0])
             img1 = rot_dic['image'][None]
             img2 = rot_dic['mask'][None]
 
+        img_tuples = self.normalize_img(*img_tuples)
         target = np.concatenate(img_tuples, axis=0)
+        # normalize target
+
+
         inp, alpha = self._compute_input(img_tuples)
 
         output = [inp, target]
@@ -520,15 +527,15 @@ class MultiChDeterministicTiffDloader:
 
 
 if __name__ == '__main__':
-    from usplit.configs.microscopy_multi_channel_lvae_config import get_config
+    from usplit.configs.lc_hagen_config import get_config
     config = get_config()
     dset = MultiChDeterministicTiffDloader(config.data,
-                                           '/group/jug/ashesh/data/microscopy/OptiMEM100x014.tif',
+                                           '/group/jug/ashesh/data/ventura_gigascience/',
                                            DataSplitType.Train,
                                            val_fraction=config.training.val_fraction,
                                            test_fraction=config.training.test_fraction,
                                            normalized_input=config.data.normalized_input,
-                                           enable_rotation_aug=config.data.normalized_input,
+                                           enable_rotation_aug=False,
                                            enable_random_cropping=config.data.deterministic_grid is False,
                                            use_one_mu_std=config.data.use_one_mu_std,
                                            allow_generation=False,
@@ -539,4 +546,4 @@ if __name__ == '__main__':
     mean, std = dset.compute_mean_std()
     dset.set_mean_std(mean, std)
 
-    inp, target, alpha = dset[0]
+    inp, target = dset[0]

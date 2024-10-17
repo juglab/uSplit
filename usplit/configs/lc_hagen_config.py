@@ -16,6 +16,12 @@ def get_config():
     data.ch2_fname = 'mito-60x-noise2-highsnr.tif'
     data.enable_poisson_noise = False
 
+    # 50% of the time, just use 0.5 as alpha. Otherwise, sample from a uniform distribution.
+    data.alpha_dirac_delta_weight = 0.5
+    data.alpha_dirac_delta_value = 0.5
+    data.ch1_min_alpha = 0.005
+    data.ch1_max_alpha = 0.995
+
     data.sampler_type = SamplerType.DefaultSampler
     data.threshold = 0.02
     data.deterministic_grid = False
@@ -48,7 +54,7 @@ def get_config():
 
     model = config.model
     model.model_type = ModelType.LadderVae
-    model.z_dims = [128, 128, 128, 128]
+    model.z_dims = [128, 128, 128, 128,128, 128, 128, 128]
 
     model.encoder.batchnorm = True
     model.encoder.blocks_per_layer = 1
