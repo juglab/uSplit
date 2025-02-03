@@ -17,10 +17,10 @@ def get_config():
     data.enable_poisson_noise = False
 
     # 50% of the time, just use 0.5 as alpha. Otherwise, sample from a uniform distribution.
-    data.alpha_dirac_delta_weight = 0.5
+    data.alpha_dirac_delta_weight = 0.0
     data.alpha_dirac_delta_value = 0.5
-    data.ch1_min_alpha = 0.005
-    data.ch1_max_alpha = 0.995
+    data.ch1_min_alpha = 0.5
+    data.ch1_max_alpha = 0.5
 
     data.sampler_type = SamplerType.DefaultSampler
     data.threshold = 0.02

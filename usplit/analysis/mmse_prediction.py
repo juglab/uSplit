@@ -172,8 +172,8 @@ def get_dset_predictions(model, dset, batch_size, model_type=None, mmse_count=1,
                         imgs = torch.cat(imgs, dim=1)
                         rec_loss = {'loss': rec_loss}
                     else:
-                        x_normalized = model.normalize_input(inp)
-                        tar_normalized = model.normalize_target(tar)
+                        x_normalized = inp
+                        tar_normalized = tar
 
                         recon_normalized, _ = model(x_normalized)
                         rec_loss, imgs = model.get_reconstruction_loss(recon_normalized,
