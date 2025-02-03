@@ -2,7 +2,7 @@
 Here, the idea is to load the data from different data dtypes into a single interface.
 """
 from typing import Union
-
+import os
 import zarr
 from usplit.core.data_split_type import DataSplitType
 from usplit.core.data_type import DataType
@@ -24,7 +24,7 @@ def get_train_val_data(data_config,
     C is the number of channels.
     """
     assert isinstance(datasplit_type, int)
-    if data_config.data_type == DataType.OptiMEM100_014:
+    if data_config.data_type ==DataType.OptiMEM100_014:
         return _load_tiff_train_val(fpath,
                                     data_config,
                                     datasplit_type,
@@ -50,5 +50,14 @@ def get_train_val_data(data_config,
         return zarr.load(fpath)
     elif data_config.data_type == DataType.SeparateTiffData:
         return _loadseparatetiff(fpath, data_config, datasplit_type, val_fraction, test_fraction)
+    elif data_config.data_type == DataType.CosemHela:
+        fname = 'train_jrc_hela-3_bleedthrough_EGFP_Venus_R3.0_S4_D1_Ex100.0ms.tif'
+        if datasplit_type  == DataSplitType.Val:
+            fname = fname.replace('train', 'val')
+        elif datasplit_type == DataSplitType.Test:
+            fname = fname.replace('train', 'test')
+
+        fpath = os.path.join(fpath,fname)
+        return _load_tiff_train_val(fpath,data_config,DataSplitType.All)
     else:
         raise NotImplementedError(f'{DataType.name(data_config.data_type)} is not implemented')

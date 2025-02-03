@@ -7,3 +7,5 @@ class DataType(Enum):
     SeparateTiffData = 7
     CustomSinosoidThreeCurve = 8
     SingleZarrData = 9
+    CosemHela = 10
+    HTLIF24 = 11
