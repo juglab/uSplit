@@ -59,7 +59,12 @@ def get_train_val_data(data_config,
             fname = fname.replace('train', 'test')
 
         fpath = os.path.join(fpath,fname)
-        return _load_tiff_train_val(fpath,data_config,DataSplitType.All)
+        print(f'Loading CosemHela data from {fpath}')
+        data = load_tiff(fpath)
+        # skip the input channel
+        data = data[...,:-1]
+        # data =  _load_tiff_train_val(fpath,data_config,DataSplitType.All)
+        return data
     elif data_config.data_type == DataType.HTLIF24:
         fname = 'train_500ms_Ch_B-Ch_D-Ch_BD.tif'
         subdir ='train'

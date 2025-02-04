@@ -10,8 +10,8 @@ def get_config():
     data = config.data
     data.image_size = 64
     data.data_type = DataType.CosemHela
-    data.channel_1 = 0
-    data.channel_2 = 1
+    # data.channel_1 = 0
+    # data.channel_2 = 1
     # data.ch1_fname = "train_jrc_hela-3_bleedthrough_EGFP_Venus_R3.0_S4_D1_Ex100.0ms.tif"
     # data.ch2_fname = 'mito-60x-noise2-highsnr.tif'
     data.enable_poisson_noise = False
@@ -64,7 +64,7 @@ def get_config():
     model.decoder.res_block_kernel = 3
     model.decoder.res_block_skip_padding = False
 
-    model.decoder.multiscale_retain_spatial_dims = True
+    model.decoder.multiscale_retain_spatial_dims = False
     config.model.decoder.conv2d_bias = True
 
     model.skip_nboundary_pixels_from_loss = None
@@ -84,7 +84,7 @@ def get_config():
     model.predict_logvar = 'pixelwise'
     model.logvar_lowerbound = -5  # -2.49 is log(1/12), from paper "Re-parametrizing VAE for stablity."
     model.multiscale_lowres_separate_branch = False
-    model.multiscale_retain_spatial_dims = True
+    model.multiscale_retain_spatial_dims = False
     model.monitor = 'val_psnr'  # {'val_loss','val_psnr'}
 
     model.enable_noise_model = False
