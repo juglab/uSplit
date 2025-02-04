@@ -3,17 +3,17 @@ from usplit.core.data_type import DataType
 from usplit.core.loss_type import LossType
 from usplit.core.model_type import ModelType
 from usplit.core.sampler_type import SamplerType
-from usplit.data_loader.ht_lif24_rawdata import HTLIF24ChannelList
+# from usplit.data_loader.ht_lif24_rawdata import HTLIF24ChannelList
 
 def get_config():
     config = get_default_config()
     data = config.data
     data.image_size = 64
     data.data_type = DataType.HTLIF24
-    data.channel_idx_list = [HTLIF24ChannelList.Ch_A, HTLIF24ChannelList.Ch_B]
+    # data.channel_idx_list = [HTLIF24ChannelList.Ch_A, HTLIF24ChannelList.Ch_B]
     # data.channel_1 = HTLIF24ChannelList.Ch_A
     # data.channel_2 = HTLIF24ChannelList.Ch_B
-    data.dset_type = '500ms'  # high, mid, low, verylow
+    # data.dset_type = '500ms'  # high, mid, low, verylow
 
     # data.ch1_fname = "train_jrc_hela-3_bleedthrough_EGFP_Venus_R3.0_S4_D1_Ex100.0ms.tif"
     # data.ch2_fname = 'mito-60x-noise2-highsnr.tif'
@@ -31,7 +31,7 @@ def get_config():
     data.use_one_mu_std = True
     data.train_aug_rotate = False
     data.randomized_channels = False
-    data.multiscale_lowres_count = 2
+    data.multiscale_lowres_count = 5
     data.padding_mode = 'reflect'
     data.padding_value = None
     # If this is set to True, then target channels will be normalized from their separate mean.
