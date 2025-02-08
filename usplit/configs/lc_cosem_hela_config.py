@@ -64,7 +64,7 @@ def get_config():
     model.decoder.res_block_kernel = 3
     model.decoder.res_block_skip_padding = False
 
-    model.decoder.multiscale_retain_spatial_dims = False
+    model.decoder.multiscale_retain_spatial_dims = True
     config.model.decoder.conv2d_bias = True
 
     model.skip_nboundary_pixels_from_loss = None
@@ -84,7 +84,7 @@ def get_config():
     model.predict_logvar = 'pixelwise'
     model.logvar_lowerbound = -5  # -2.49 is log(1/12), from paper "Re-parametrizing VAE for stablity."
     model.multiscale_lowres_separate_branch = False
-    model.multiscale_retain_spatial_dims = False
+    model.multiscale_retain_spatial_dims = True
     model.monitor = 'val_psnr'  # {'val_loss','val_psnr'}
 
     model.enable_noise_model = False

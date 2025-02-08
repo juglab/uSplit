@@ -52,7 +52,7 @@ def get_train_val_data(data_config,
     elif data_config.data_type == DataType.SeparateTiffData:
         return _loadseparatetiff(fpath, data_config, datasplit_type, val_fraction, test_fraction)
     elif data_config.data_type == DataType.CosemHela:
-        fname = 'train_jrc_hela-3_bleedthrough_EGFP_Venus_R3.0_S4_D1_Ex100.0ms.tif'
+        fname = 'train_jrc_hela-3_bleedthrough_EGFP_Venus_R3.0-3.0_S4_D1_Ex100.0ms.tif'
         if datasplit_type  == DataSplitType.Val:
             fname = fname.replace('train', 'val')
         elif datasplit_type == DataSplitType.Test:
