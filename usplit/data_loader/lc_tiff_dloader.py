@@ -136,8 +136,6 @@ class MultiScaleTiffDloader(MultiChDeterministicTiffDloader):
         img_tuples = self._get_img(index)
         assert self._enable_rotation is False
         
-        img_tuples = self.normalize_img(*img_tuples)
-
         if self._lowres_supervision:
             target = np.concatenate([img[:, None] for img in img_tuples], axis=1)
         else:

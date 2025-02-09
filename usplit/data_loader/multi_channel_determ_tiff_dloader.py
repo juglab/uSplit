@@ -472,6 +472,12 @@ class MultiChDeterministicTiffDloader:
         assert len(img_tuples) == 2, f'Expected {len(img_tuples)} to be 2'
         assert self._normalized_input is True, "normalization should happen here"
         inp = img_tuples[0] * alpha + img_tuples[1] * (1 - alpha)
+        mean, std = self.get_mean_std()
+        mean = mean.squeeze()
+        std = std.squeeze()
+        assert mean[0] == mean[1] and len(mean) == 2
+        assert std[0] == std[1] and len(std) == 2
+        inp = (inp - mean[0]) / std[0]
         return inp.astype(np.float32)
 
     def _sample_alpha(self):
@@ -506,11 +512,7 @@ class MultiChDeterministicTiffDloader:
             img1 = rot_dic['image'][None]
             img2 = rot_dic['mask'][None]
 
-        img_tuples = self.normalize_img(*img_tuples)
         target = np.concatenate(img_tuples, axis=0)
-        # normalize target
-
-
         inp, alpha = self._compute_input(img_tuples)
 
         output = [inp, target]
