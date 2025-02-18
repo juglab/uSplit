@@ -19,8 +19,8 @@ def get_config():
     # 50% of the time, just use 0.5 as alpha. Otherwise, sample from a uniform distribution.
     data.alpha_dirac_delta_weight = 0.5
     data.alpha_dirac_delta_value = 0.5
-    data.ch1_min_alpha = 0.2
-    data.ch1_max_alpha = 0.8
+    data.ch1_min_alpha = 0.0
+    data.ch1_max_alpha = 1.0
 
     data.sampler_type = SamplerType.DefaultSampler
     data.threshold = 0.02

@@ -14,7 +14,9 @@ if __name__ == '__main__':
     parser.add_argument('--data_dir', type=str, help='Data directory', default='/group/jug/ashesh/data/ventura_gigascience/')
     parser.add_argument('--mmse_count', type=int, help='Number of mmse values to generate', default=5)
     parser.add_argument('--MIXING_WEIGHT', type=float, help='Mixing parameter for input generation', default=0.5)
-
+    parser.add_argument('--image_size_for_grid_centers', type=int, help='Image size for grid centers', default=32)
+    parser.add_argument('--custom_image_size', type=int, help='Custom image size', default=64)
+    parser.add_argument('--batch_size', type=int, help='Batch size', default=32)
     args = parser.parse_args()
 
     # get a year-month-day hour-minute formatted string
@@ -46,6 +48,9 @@ if __name__ == '__main__':
             'ckpt_dir':args.ckpt_dir,
             'data_dir':args.data_dir,
             'mmse_count':args.mmse_count,
-            'MIXING_WEIGHT':args.MIXING_WEIGHT
+            'MIXING_WEIGHT':args.MIXING_WEIGHT,
+            'image_size_for_grid_centers':args.image_size_for_grid_centers,
+            'custom_image_size':args.custom_image_size,
+            'batch_size':args.batch_size
         }
     )
