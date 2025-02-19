@@ -9,3 +9,5 @@ class DataType(Enum):
     SingleZarrData = 9
     CosemHela = 10
     HTLIF24 = 11
+    HTT24 = 12
+    BioSR = 13

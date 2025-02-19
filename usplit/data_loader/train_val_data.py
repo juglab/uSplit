@@ -77,12 +77,37 @@ def get_train_val_data(data_config,
 
         fpath = os.path.join(fpath,subdir,fname)
         data = load_tiff(fpath)
-        # skip the input channel
-        data = data[...,:-1]
+        if 'keep_real_input' in data_config and data_config.keep_real_input:
+            pass
+        else:
+            # skip the input channel
+            data = data[...,:-1]
+
         print(f'Loaded HTLIF24 data from {fpath}', data.shape)
         return data
         # return _load_htlif24_data(fpath, data_config, datasplit_type, 
         #                           val_fraction=val_fraction, 
         #                           test_fraction=test_fraction)
+    elif data_config.data_type in [DataType.HTT24, DataType.BioSR]:
+        fname = 'train.tif'
+        subdir ='train'
+        if datasplit_type  == DataSplitType.Val:
+            fname = fname.replace('train', 'val')
+            subdir = 'val'
+        elif datasplit_type == DataSplitType.Test:
+            fname = fname.replace('train', 'test')
+            subdir = 'test'
+        fpath = os.path.join(fpath,subdir,fname)
+        data = load_tiff(fpath)
+
+        if data_config.data_type == DataType.HTT24:
+            if 'keep_real_input' in data_config and data_config.keep_real_input:
+                pass
+            else:
+                # skip the input channel
+                data = data[...,:-1]
+
+        print(f'Loaded {DataType.name(data_config.data_type)} data from {fpath}', data.shape)
+        return data
     else:
         raise NotImplementedError(f'{DataType.name(data_config.data_type)} is not implemented')
