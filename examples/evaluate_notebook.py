@@ -29,7 +29,7 @@ if __name__ == '__main__':
     outputdir = os.path.join(args.outputdir, '_'.join(ckpt_dir.split('/')[-3:]))
     fname = os.path.basename(args.notebook)
     fname = fname.replace('.ipynb','')
-    fname = f"{fname}_{param_str}_{now}.ipynb"
+    fname = f"uSplit_{fname}_{param_str}_{now}.ipynb"
     output_fpath = os.path.join(outputdir, fname)
     output_config_fpath = os.path.join(outputdir,'config', fname.replace('.ipynb','.txt'))
     os.makedirs(os.path.dirname(output_config_fpath), exist_ok=True)
