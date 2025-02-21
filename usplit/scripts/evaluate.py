@@ -26,7 +26,7 @@ from usplit.core.model_type import ModelType
 from usplit.core.psnr import PSNR, RangeInvariantPsnr
 from usplit.data_loader.multi_channel_determ_tiff_dloader import MultiChDeterministicTiffDloader
 from usplit.data_loader.multiscale_mc_tiff_dloader import MultiScaleTiffDloader
-from usplit.data_loader.patch_index_manager import GridAlignement
+from usplit.data_loader.patch_index_manager import TilingMode
 from usplit.training import create_model
 
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -243,7 +243,7 @@ def main(
     ## Disentanglement setup.
     ####
     ####
-    grid_alignment = GridAlignement.Center
+    grid_alignment = TilingMode.ShiftBoundary
     if image_size_for_grid_centers is not None:
         old_grid_size = config.data.get('grid_size', "grid_size not present")
         with config.unlocked():

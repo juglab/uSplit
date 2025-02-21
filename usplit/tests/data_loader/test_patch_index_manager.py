@@ -1,11 +1,11 @@
-from usplit.data_loader.patch_index_manager import GridAlignement, GridIndexManager
+from usplit.data_loader.patch_index_manager import TilingMode, GridIndexManager
 
 
 def test_grid_index_manager_idx_to_hwt_mapping():
     grid_size = 32
     patch_size = 64
     index = 13
-    manager = GridIndexManager((5, 499, 469, 2), grid_size, patch_size, GridAlignement.Center)
+    manager = GridIndexManager((5, 499, 469, 2), grid_size, patch_size, TilingMode.ShiftBoundary)
     h_start, w_start = manager.get_deterministic_hw(index)
     print(h_start, w_start, manager.grid_count())
     print(manager.grid_rows(grid_size), manager.grid_cols(grid_size))

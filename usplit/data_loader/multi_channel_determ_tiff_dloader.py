@@ -6,7 +6,7 @@ import numpy as np
 from usplit.core.data_split_type import DataSplitType
 from usplit.core.data_type import DataType
 from usplit.core.empty_patch_fetcher import EmptyPatchFetcher
-from usplit.data_loader.patch_index_manager import GridAlignement, GridIndexManager
+from usplit.data_loader.patch_index_manager import TilingMode, TileIndexManager
 from usplit.data_loader.train_val_data import get_train_val_data
 
 
@@ -24,7 +24,7 @@ class MultiChDeterministicTiffDloader:
                  use_one_mu_std=None,
                  allow_generation=False,
                  max_val=None,
-                 grid_alignment=GridAlignement.LeftTop,
+                 grid_alignment=TilingMode.ShiftBoundary,
                  overlapping_padding_kwargs=None,
                  test_img_arr: np.ndarray = None):
         """
@@ -61,10 +61,10 @@ class MultiChDeterministicTiffDloader:
 
         self._grid_alignment = grid_alignment
         self._overlapping_padding_kwargs = overlapping_padding_kwargs
-        if self._grid_alignment == GridAlignement.LeftTop:
-            assert self._overlapping_padding_kwargs is None or data_config.multiscale_lowres_count is not None, "Padding is not used with this alignement style"
-        elif self._grid_alignment == GridAlignement.Center:
-            assert self._overlapping_padding_kwargs is not None, 'With Center grid alignment, padding is needed.'
+        # if self._grid_alignment == TilingMode.ShiftBoundary:
+        #     assert self._overlapping_padding_kwargs is None or data_config.multiscale_lowres_count is not None, "Padding is not used with this alignement style"
+        # elif self._grid_alignment == TilingMode.ShiftBoundary:
+        #     assert self._overlapping_padding_kwargs is not None, 'With Center grid alignment, padding is needed.'
 
         self._is_train = datasplit_type == DataSplitType.Train
 
@@ -142,6 +142,7 @@ class MultiChDeterministicTiffDloader:
                                             val_fraction=val_fraction,
                                             test_fraction=test_fraction,
                                             allow_generation=allow_generation)
+            # self._data = self._data[:1].copy()
         self.N = len(self._data)
 
     def save_background(self, channel_idx, frame_idx, background_value):
@@ -214,6 +215,14 @@ class MultiChDeterministicTiffDloader:
     def get_img_sz(self):
         return self._img_sz
 
+    def get_idx_manager_shapes(self, patch_size:int, grid_size:Union[int, Tuple[int,int,int]]):
+        numC = self._data.shape[-1]
+        assert isinstance(grid_size, int)
+        grid_shape = (1, grid_size, grid_size, numC)
+        patch_shape = (1, patch_size, patch_size, numC)
+
+        return patch_shape, grid_shape
+    
     def set_img_sz(self, image_size, grid_size):
         """
         If one wants to change the image size on the go, then this can be used.
@@ -224,15 +233,21 @@ class MultiChDeterministicTiffDloader:
 
         self._img_sz = image_size
         self._grid_sz = grid_size
-        self.idx_manager = GridIndexManager(self._data.shape, self._grid_sz, self._img_sz, self._grid_alignment)
-        self.set_repeat_factor()
+        shape = self._data.shape
+        patch_shape, grid_shape = self.get_idx_manager_shapes(self._img_sz, self._grid_sz)
+        self.idx_manager = TileIndexManager(shape, grid_shape, patch_shape, self._grid_alignment)
 
-    def set_repeat_factor(self):
-        self._repeat_factor = self.idx_manager.grid_rows(self._grid_sz) * self.idx_manager.grid_cols(self._grid_sz)
+        # self.idx_manager = TileIndexManager(self._data.shape, self._grid_sz, self._img_sz, self._grid_alignment)
+        # self.set_repeat_factor()
+
+    # def set_repeat_factor(self):
+    #     self._repeat_factor = self.idx_manager.grid_rows(self._grid_sz) * self.idx_manager.grid_cols(self._grid_sz)
+    def __len__(self):
+        return self.idx_manager.total_grid_count()
 
     def _init_msg(self, ):
         msg = f'[{self.__class__.__name__}] Sz:{self._img_sz}'
-        msg += f' Train:{int(self._is_train)} N:{self.N} NumPatchPerN:{self._repeat_factor}'
+        msg += f' Train:{int(self._is_train)} N:{self.N}'
         msg += f' NormInp:{self._normalized_input}'
         msg += f' SingleNorm:{self._use_one_mu_std}'
         msg += f' Rot:{self._enable_rotation}'
@@ -271,16 +286,17 @@ class MultiChDeterministicTiffDloader:
         })
 
     def _crop_img(self, img: np.ndarray, h_start: int, w_start: int):
-        if self._grid_alignment == GridAlignement.LeftTop:
-            # In training, this is used.
-            # NOTE: It is my opinion that if I just use self._crop_img_with_padding, it will work perfectly fine.
-            # The only benefit this if else loop provides is that it makes it easier to see what happens during training.
-            new_img = img[..., h_start:h_start + self._img_sz, w_start:w_start + self._img_sz]
-            return new_img
-        elif self._grid_alignment == GridAlignement.Center:
-            # During evaluation, this is used. In this situation, we can have negative h_start, w_start. Or h_start +self._img_sz can be larger than frame
-            # In these situations, we need some sort of padding. This is not needed  in the LeftTop alignement.
-            return self._crop_img_with_padding(img, h_start, w_start)
+        return self._crop_img_with_padding(img, h_start, w_start)
+        # if self._grid_alignment == TilingMode.ShiftBoundary:
+        #     # In training, this is used.
+        #     # NOTE: It is my opinion that if I just use self._crop_img_with_padding, it will work perfectly fine.
+        #     # The only benefit this if else loop provides is that it makes it easier to see what happens during training.
+        #     new_img = img[..., h_start:h_start + self._img_sz, w_start:w_start + self._img_sz]
+        #     return new_img
+        # elif self._grid_alignment == TilingMode.ShiftBoundary:
+        #     # During evaluation, this is used. In this situation, we can have negative h_start, w_start. Or h_start +self._img_sz can be larger than frame
+        #     # In these situations, we need some sort of padding. This is not needed  in the LeftTop alignement.
+        #     return self._crop_img_with_padding(img, h_start, w_start)
 
     def get_begin_end_padding(self, start_pos, max_len):
         """
@@ -331,16 +347,14 @@ class MultiChDeterministicTiffDloader:
 
         return new_img.astype(np.float32)
 
-    def __len__(self):
-        return self.N * self._repeat_factor
-
     def _load_img(self, index: Union[int, Tuple[int, int]]) -> Tuple[np.ndarray, np.ndarray]:
         if isinstance(index, int):
             idx = index
         else:
             idx = index[0]
 
-        imgs = self._data[self.idx_manager.get_t(idx)]
+        t_idx = self.idx_manager.get_patch_location_from_dataset_idx(idx)[0]
+        imgs = self._data[t_idx]
         loaded_imgs = [imgs[None, ..., i] for i in range(imgs.shape[-1])]
         return tuple(loaded_imgs)
 
@@ -383,12 +397,13 @@ class MultiChDeterministicTiffDloader:
         else:
             idx, grid_size = index
 
-        h_start, w_start = self.idx_manager.get_deterministic_hw(idx, grid_size=grid_size)
-        if self._grid_alignment == GridAlignement.LeftTop:
-            return h_start, w_start
-        elif self._grid_alignment == GridAlignement.Center:
-            pad = self.per_side_overlap_pixelcount()
-            return h_start - pad, w_start - pad
+        h_start, w_start = self.idx_manager.get_patch_location_from_dataset_idx(idx)[1:3]
+        return h_start, w_start
+        # if self._grid_alignment == TilingMode.ShiftBoundary:
+        #     return h_start, w_start
+        # elif self._grid_alignment == TilingMode.ShiftBoundary:
+        #     pad = self.per_side_overlap_pixelcount()
+        #     return h_start - pad, w_start - pad
 
     def compute_individual_mean_std(self):
         # numpy 1.19.2 has issues in computing for large arrays. https://github.com/numpy/numpy/issues/8869
@@ -542,7 +557,7 @@ if __name__ == '__main__':
                                            use_one_mu_std=config.data.use_one_mu_std,
                                            allow_generation=False,
                                            max_val=None,
-                                           grid_alignment=GridAlignement.LeftTop,
+                                           grid_alignment=TilingMode.ShiftBoundary,
                                            overlapping_padding_kwargs=None)
 
     mean, std = dset.compute_mean_std()

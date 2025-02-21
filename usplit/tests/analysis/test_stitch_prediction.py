@@ -3,7 +3,7 @@ import numpy as np
 from usplit.analysis.stitch_prediction import (_get_location, set_skip_boundary_pixels_mask,
                                                set_skip_central_pixels_mask, stitch_predictions,
                                                stitched_prediction_mask)
-from usplit.data_loader.patch_index_manager import GridAlignement, GridIndexManager
+from usplit.data_loader.patch_index_manager import TilingMode, GridIndexManager
 
 
 def test_skipping_boundaries():
@@ -59,7 +59,7 @@ class DummyDset:
         self.patch_size = patch_size
         self.grid_size = grid_size
         self.data_shape = data_shape
-        idx_manager = GridIndexManager(data_shape, grid_size, patch_size, GridAlignement.Center)
+        idx_manager = GridIndexManager(data_shape, grid_size, patch_size, TilingMode.ShiftBoundary)
         self.idx_manager = idx_manager
 
     def per_side_overlap_pixelcount(self):

@@ -184,7 +184,7 @@ print(config)
 from usplit.data_loader.multi_channel_determ_tiff_dloader import MultiChDeterministicTiffDloader
 from usplit.data_loader.lc_tiff_dloader import MultiScaleTiffDloader
 from usplit.core.data_split_type import DataSplitType
-from usplit.data_loader.patch_index_manager import GridAlignement
+from usplit.data_loader.patch_index_manager import TilingMode
 
 padding_kwargs = {
     'mode':config.data.get('padding_mode','constant'),
@@ -214,7 +214,7 @@ normalized_input = config.data.normalized_input
 use_one_mu_std = config.data.use_one_mu_std
 train_aug_rotate = config.data.train_aug_rotate
 enable_random_cropping = False
-grid_alignment = GridAlignement.Center
+grid_alignment = TilingMode.ShiftBoundary
 print(data_class)
 
 train_dset = data_class(

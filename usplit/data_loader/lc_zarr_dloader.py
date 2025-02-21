@@ -10,7 +10,7 @@ from tqdm import tqdm
 import zarr
 from usplit.core.data_split_type import DataSplitType
 from usplit.data_loader.lc_tiff_dloader import MultiScaleTiffDloader
-from usplit.data_loader.patch_index_manager import GridAlignement
+from usplit.data_loader.patch_index_manager import TilingMode
 
 
 class MultiScaleZarrDloader(MultiScaleTiffDloader):
@@ -30,7 +30,7 @@ class MultiScaleZarrDloader(MultiScaleTiffDloader):
                  allow_generation: bool = False,
                  lowres_supervision=None,
                  max_val=None,
-                 grid_alignment=GridAlignement.LeftTop,
+                 grid_alignment=TilingMode.ShiftBoundary,
                  overlapping_padding_kwargs=None):
         msg = 'To avoid whole data to get loaded in the current implementation, {} should be disabled'
         assert data_config.get("empty_patch_replacement_enabled",

@@ -8,7 +8,7 @@ from skimage.transform import resize
 from usplit.core.data_split_type import DataSplitType
 from usplit.core.data_type import DataType
 from usplit.data_loader.multi_channel_determ_tiff_dloader import MultiChDeterministicTiffDloader
-from usplit.data_loader.patch_index_manager import GridAlignement
+from usplit.data_loader.patch_index_manager import TilingMode
 
 
 class MultiScaleTiffDloader(MultiChDeterministicTiffDloader):
@@ -29,7 +29,7 @@ class MultiScaleTiffDloader(MultiChDeterministicTiffDloader):
         allow_generation: bool = False,
         lowres_supervision=None,
         max_val=None,
-        grid_alignment=GridAlignement.LeftTop,
+        grid_alignment=TilingMode.ShiftBoundary,
         overlapping_padding_kwargs=None,
         test_img_arr: np.ndarray = None
     ):
@@ -87,7 +87,9 @@ class MultiScaleTiffDloader(MultiChDeterministicTiffDloader):
             idx = index
         else:
             idx, _ = index
-        imgs = self._scaled_data[scaled_index][idx % self.N]
+        
+        t_idx = self.idx_manager.get_patch_location_from_dataset_idx(idx)[0]
+        imgs = self._scaled_data[scaled_index][t_idx]
         return tuple([imgs[None, :, :, i] for i in range(imgs.shape[-1])])
 
     def _crop_img(self, img: np.ndarray, h_start: int, w_start: int):
@@ -175,7 +177,7 @@ if __name__ == '__main__':
                                            num_scales= config.data.multiscale_lowres_count,
                                            allow_generation=False,
                                            max_val=None,
-                                           grid_alignment=GridAlignement.LeftTop,
+                                           grid_alignment=TilingMode.ShiftBoundary,
                                            overlapping_padding_kwargs=None,
                                            padding_kwargs=padding_kwargs)
 

@@ -1,4 +1,10 @@
 import numpy as np
+from dataclasses import dataclass
+from typing import Iterable
+
+import numpy as np
+
+from usplit.data_loader.patch_index_manager import TilingMode
 
 
 class PatchLocation:
@@ -162,54 +168,128 @@ def update_loc_for_final_insertion(loc, extra_padding, smoothening_pixelcount):
     return loc
 
 
-def stitch_predictions(predictions, dset, smoothening_pixelcount=0):
+
+# from disentangle.analysis.stitch_prediction import * 
+def stitch_predictions(predictions, dset):
     """
     Args:
         smoothening_pixelcount: number of pixels which can be interpolated
     """
-    assert smoothening_pixelcount >= 0 and isinstance(smoothening_pixelcount, int)
 
-    extra_padding = dset.per_side_overlap_pixelcount()
+    mng = dset.idx_manager
+    
     # if there are more channels, use all of them.
     shape = list(dset.get_data_shape())
     shape[-1] = max(shape[-1], predictions.shape[1])
 
     output = np.zeros(shape, dtype=predictions.dtype)
-    frame_shape = dset.get_data_shape()[1:3]
-    for dset_input_idx in range(predictions.shape[0]):
-        loc = get_location_from_idx(dset, dset_input_idx, predictions.shape[-2], predictions.shape[-1])
+    # frame_shape = dset.get_data_shape()[:-1]
+    for dset_idx in range(predictions.shape[0]):
+        # loc = get_location_from_idx(dset, dset_idx, predictions.shape[-2], predictions.shape[-1])
+        # grid start, grid end
+        gs = np.array(mng.get_location_from_dataset_idx(dset_idx), dtype=int)
+        ge = gs + mng.grid_shape
 
-        mask = None
-        cropped_pred_list = []
+        # patch start, patch end
+        ps = gs - mng.patch_offset()
+        pe = ps + mng.patch_shape
+        # print('PS')
+        # print(ps)
+        # print(pe)
+
+        # valid grid start, valid grid end
+        vgs = np.array([max(0,x) for x in gs], dtype=int)
+        vge = np.array([min(x,y) for x,y in zip(ge, mng.data_shape)], dtype=int)
+        assert np.all(vgs ==gs)
+        assert np.all(vge ==ge)
+        # print('VGS')
+        # print(gs)
+        # print(ge)
+        
+        if mng.tiling_mode == TilingMode.ShiftBoundary:
+            for dim in range(len(vgs)):
+                if ps[dim] == 0:
+                    vgs[dim] = 0
+                if pe[dim] == mng.data_shape[dim]:
+                    vge[dim]= mng.data_shape[dim]
+
+        # relative start, relative end. This will be used on pred_tiled
+        rs = vgs - ps
+        re = rs + ( vge - vgs)
+        # print('RS')
+        # print(rs)
+        # print(re)
+        
+        # print(output.shape)
+        # print(predictions.shape)
         for ch_idx in range(predictions.shape[1]):
-            # class i
-            cropped_pred_i = remove_pad(predictions[dset_input_idx, ch_idx], loc, extra_padding, smoothening_pixelcount,
-                                        frame_shape)
-
-            if mask is None:
-                # NOTE: don't need to compute it for every patch.
-                assert smoothening_pixelcount == 0, "For smoothing,enable the get_smoothing_mask. It is disabled since I don't use it and it needs modification to work with non-square images"
-                mask = 1
-                # mask = _get_smoothing_mask(cropped_pred_i.shape, smoothening_pixelcount, loc, frame_size)
-
-            cropped_pred_list.append(cropped_pred_i)
-
-        loc = update_loc_for_final_insertion(loc, extra_padding, smoothening_pixelcount)
-        for ch_idx in range(predictions.shape[1]):
-            output[loc.t, loc.h_start:loc.h_end, loc.w_start:loc.w_end, ch_idx] += cropped_pred_list[ch_idx] * mask
-
+            if len(output.shape) == 4:
+                # channel dimension is the last one.
+                output[vgs[0]:vge[0],
+                    vgs[1]:vge[1],
+                    vgs[2]:vge[2],
+                    ch_idx] = predictions[dset_idx][ch_idx,rs[1]:re[1], rs[2]:re[2]]
+            elif len(output.shape) == 5:
+                # channel dimension is the last one.
+                assert vge[0] - vgs[0] == 1, 'Only one frame is supported'
+                output[vgs[0],
+                    vgs[1]:vge[1],
+                    vgs[2]:vge[2],
+                    vgs[3]:vge[3],
+                    ch_idx] = predictions[dset_idx][ch_idx, rs[1]:re[1], rs[2]:re[2], rs[3]:re[3]]
+            else:
+                raise ValueError(f'Unsupported shape {output.shape}')
+                
     return output
+
+# def stitch_predictions(predictions, dset, smoothening_pixelcount=0):
+#     """
+#     Args:
+#         smoothening_pixelcount: number of pixels which can be interpolated
+#     """
+#     assert smoothening_pixelcount >= 0 and isinstance(smoothening_pixelcount, int)
+
+#     extra_padding = dset.per_side_overlap_pixelcount()
+#     # if there are more channels, use all of them.
+#     shape = list(dset.get_data_shape())
+#     shape[-1] = max(shape[-1], predictions.shape[1])
+
+#     output = np.zeros(shape, dtype=predictions.dtype)
+#     frame_shape = dset.get_data_shape()[1:3]
+#     for dset_input_idx in range(predictions.shape[0]):
+#         loc = get_location_from_idx(dset, dset_input_idx, predictions.shape[-2], predictions.shape[-1])
+
+#         mask = None
+#         cropped_pred_list = []
+#         for ch_idx in range(predictions.shape[1]):
+#             # class i
+#             cropped_pred_i = remove_pad(predictions[dset_input_idx, ch_idx], loc, extra_padding, smoothening_pixelcount,
+#                                         frame_shape)
+
+#             if mask is None:
+#                 # NOTE: don't need to compute it for every patch.
+#                 assert smoothening_pixelcount == 0, "For smoothing,enable the get_smoothing_mask. It is disabled since I don't use it and it needs modification to work with non-square images"
+#                 mask = 1
+#                 # mask = _get_smoothing_mask(cropped_pred_i.shape, smoothening_pixelcount, loc, frame_size)
+
+#             cropped_pred_list.append(cropped_pred_i)
+
+#         loc = update_loc_for_final_insertion(loc, extra_padding, smoothening_pixelcount)
+#         for ch_idx in range(predictions.shape[1]):
+#             output[loc.t, loc.h_start:loc.h_end, loc.w_start:loc.w_end, ch_idx] += cropped_pred_list[ch_idx] * mask
+
+#     return output
 
 
 if __name__ == '__main__':
-    from usplit.data_loader.patch_index_manager import GridAlignement, GridIndexManager
+    from usplit.data_loader.patch_index_manager import TilingMode, GridIndexManager
     grid_size = 32
     patch_size = 64
     data_shape = (1, 1550, 1920, 2)
     N = data_shape[0] * (data_shape[1] // grid_size) * (data_shape[2] // grid_size)
     predictions = np.zeros((N, 2, patch_size, patch_size))
     # data_shape, grid_size, patch_size, grid_alignement
-    idx_manager = GridIndexManager(data_shape, grid_size, patch_size, GridAlignement.Center)
+    idx_manager = GridIndexManager(data_shape, grid_size, patch_size, TilingMode.ShiftBoundary)
 
     class TestDataSet:
 
