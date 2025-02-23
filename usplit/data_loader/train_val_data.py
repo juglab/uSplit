@@ -61,8 +61,12 @@ def get_train_val_data(data_config,
         fpath = os.path.join(fpath,fname)
         print(f'Loading CosemHela data from {fpath}')
         data = load_tiff(fpath)
-        # skip the input channel
-        data = data[...,:-1]
+        if 'keep_real_input' in data_config and data_config.keep_real_input:
+            data = data[...,[0,1,data_config.input_channel_idx]]
+        else:
+            # skip the input channel
+            data = data[...,:2]
+
         # data =  _load_tiff_train_val(fpath,data_config,DataSplitType.All)
         return data
     elif data_config.data_type == DataType.HTLIF24:
@@ -81,7 +85,7 @@ def get_train_val_data(data_config,
             pass
         else:
             # skip the input channel
-            data = data[...,:-1]
+            data = data[...,:2]
 
         print(f'Loaded HTLIF24 data from {fpath}', data.shape)
         return data
@@ -105,7 +109,7 @@ def get_train_val_data(data_config,
                 pass
             else:
                 # skip the input channel
-                data = data[...,:-1]
+                data = data[...,:2]
 
         print(f'Loaded {DataType.name(data_config.data_type)} data from {fpath}', data.shape)
         return data

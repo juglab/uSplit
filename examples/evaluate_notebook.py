@@ -6,6 +6,9 @@ import os
 
 
 if __name__ == '__main__':
+    # python examples/evaluate_notebook.py --ckpt_dir=/home/ashesh.ashesh/paper_models/Hagen/MitoVsAct/DeepLC/ --mmse_count=10 --MIXING_WEIGHT=0.9
+    # python examples/evaluate_notebook.py --ckpt_dir=/group/jug/ashesh/training/disentangle/2502/D11-M3-S0-L0/9 --mmse_count=10 --MIXING_WEIGHT=0.1 --data_dir=/group/jug/ashesh/data/diffsplit_HT_LIF/500ms/Ch_B-Ch_D-Ch_BD/
+
     parser = argparse.ArgumentParser(description='Run a notebook')
     parser.add_argument('--notebook', type=str, help='Notebook to run', default='/home/ashesh.ashesh/code/uSplit/examples/EvaluateWithDifferentMixingWeights.ipynb')
     parser.add_argument('--outputdir', type=str, help='Output notebook directory', default='/group/jug/ashesh/indiSplit/notebook_results_baselines/')
