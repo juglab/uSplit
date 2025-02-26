@@ -1,3 +1,5 @@
 python examples/evaluate_notebook.py --ckpt_dir=/group/jug/ashesh/training/disentangle/2502/D12-M3-S0-L0/2/ --mmse_count=10  --data_dir=/group/jug/ashesh/data/diffsplit_HT_T24/ --notebook=/home/ashesh.ashesh/code/uSplit/examples/EvaluateRealInput.ipynb
 python examples/evaluate_notebook.py --ckpt_dir=/group/jug/ashesh/training/disentangle/2502/D12-M3-S0-L0/5/ --mmse_count=10  --data_dir=/group/jug/ashesh/data/diffsplit_HT_T24/ --notebook=/home/ashesh.ashesh/code/uSplit/examples/EvaluateRealInput.ipynb
 python examples/evaluate_notebook.py --ckpt_dir=/group/jug/ashesh/training/disentangle/2502/D12-M3-S0-L0/4 --mmse_count=10  --data_dir=/group/jug/ashesh/data/diffsplit_HT_T24/ --notebook=/home/ashesh.ashesh/code/uSplit/examples/EvaluateRealInput.ipynb
+
+python examples/evaluate_notebook.py --ckpt_dir=/group/jug/ashesh/training/disentangle/2502/D12-M10-S0-L3/1 --mmse_count=10  --data_dir=/group/jug/ashesh/data/diffsplit_HT_T24/ --notebook=/home/ashesh.ashesh/code/uSplit/examples/EvaluateRealInput.ipynb
