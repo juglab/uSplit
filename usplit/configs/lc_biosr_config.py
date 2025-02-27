@@ -51,7 +51,7 @@ def get_config():
 
     model = config.model
     model.model_type = ModelType.LadderVae
-    model.z_dims = [128, 128, 128, 128, 128, 128, 128, 128]
+    model.z_dims = [128, 128, 128, 128]
 
     model.encoder.batchnorm = True
     model.encoder.blocks_per_layer = 1
@@ -104,6 +104,6 @@ def get_config():
     training.val_fraction = 0.1
     training.test_fraction = 0.1
     training.earlystop_patience = 200
-    training.precision = 16
+    # training.precision = 16
 
     return config
